@@ -70,7 +70,7 @@ class Validate extends Controller
         
 
         // Fetch questions from the respective questions table
-        $questions = DB::table($questionsTable)->inRandomOrder()->get();
+        
         
         // Redirect to the quiz page with the questions
         Session::put('candidate', $participant);
@@ -82,6 +82,9 @@ class Validate extends Controller
                 DB::table($participantsTable)
                     ->where('application_id', $applicationId)
                     ->update(['endtime' => $endTime]);
+                
+                $questions = DB::table($questionsTable)->inRandomOrder()->get();
+                Session::put('questions', $questions);
             } else {
                 // If endtime is already set, fetch it from the participant record
                 $endTime = $participant->endtime;
@@ -92,7 +95,7 @@ class Validate extends Controller
             $endTime=NULL;
         }
         return view('Candidate.Quiz', [
-            'questions' => $questions,
+            // 'questions' => $questions,
             'endTime' => $endTime,
             'applicationId' => $applicationId,
             'QuestionTable' => $questionsTable,
