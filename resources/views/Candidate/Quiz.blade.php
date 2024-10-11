@@ -23,6 +23,9 @@
         $currentTime = \Carbon\Carbon::now()->timezone('Asia/Kolkata'); // Get current time
         $startTime = \Carbon\Carbon::parse($quiz->start_time)->timezone('Asia/Kolkata');
         $endTestTime = \Carbon\Carbon::parse($quiz->end_time)->timezone('Asia/Kolkata');
+        if(Session::has('questions')) {
+            $questions = Session::get('questions');
+        }
     @endphp
 
     @if($currentTime < $startTime)
@@ -118,101 +121,115 @@
         </div>
     </div>
     <script>
-        $(document).ready(function() {
+    $(document).ready(function() {
+        $('.question').hide();
+        $('#question-1').show(); 
+        $('.question-link').click(function(e) {
+            e.preventDefault();
+            var questionId = $(this).data('question-id');
             $('.question').hide();
-            $('#question-1').show(); 
-            $('.question-link').click(function(e) {
-                e.preventDefault();
-                var questionId = $(this).data('question-id');
-                $('.question').hide();
-                $('#question-' + questionId).show();
-                $('.question-link').removeClass('selected');
-                $(this).addClass('selected');
-                updateQuestionLinkStates();
-            });
+            $('#question-' + questionId).show();
+            $('.question-link').removeClass('selected');
+            $(this).addClass('selected');
+            updateQuestionLinkStates();
+        });
 
-            // Load saved answers from localStorage
-            $('.option').each(function() {
-                var questionId = $(this).closest('.question').attr('id').split('-')[1];
-                var savedAnswer = localStorage.getItem('question_' + questionId);
-                if (savedAnswer) {
-                    $(this).prop('checked', savedAnswer == $(this).val());
+        // Load saved answers from localStorage
+        $('.option').each(function() {
+            var questionId = $(this).closest('.question').attr('id').split('-')[1];
+            var savedAnswer = localStorage.getItem('question_' + questionId);
+            
+            // Check if the saved answer exists and set the checked state
+            if (savedAnswer) {
+                $(this).prop('checked', savedAnswer == $(this).val());
+                // Disable other options if this option is checked
+                if ($(this).prop('checked')) {
+                    disableOtherOptions(questionId, $(this));
                 }
-            });
-
-            $('.option').change(function() {
-                var questionId = $(this).closest('.question').attr('id').split('-')[1];
-                localStorage.setItem('question_' + questionId, $(this).val());
-                $(this).closest('.question-link').removeClass('unanswered').addClass('answered');
-                updateQuestionLinkStates();
-            });
-
-            $('#submitQuizBtn').click(function() {
-                $('#submitModal').show();
-            });
-
-            // Confirm submission
-            $('#confirmSubmit').click(function() {
-                localStorage.clear(); // Clear saved answers before submitting
-                $('#quizForm').submit();
-            });
-
-            // Close modal
-            $('.close, #cancelSubmit').click(function() {
-                $('#submitModal').hide();
-            });
-
-            $(window).click(function(event) {
-                if ($(event.target).is('#submitModal')) {
-                    $('#submitModal').hide();
-                }
-            });
-
-
-            function updateQuestionLinkStates() {
-                $('.question').each(function() {
-                    var questionId = $(this).attr('id').split('-')[1];
-                    var isAnswered = $(this).find('.option:checked').length > 0;
-                    var link = $('.question-link[data-question-id="' + questionId + '"]');
-
-                    if (isAnswered) {
-                        link.removeClass('unanswered').addClass('answered');
-                    } else {
-                        link.removeClass('answered').addClass('unanswered');
-                    }
-                });
-            }
-
-            function startTimer(duration) {
-                var timer = duration, minutes, seconds;
-                setInterval(function () {
-                    minutes = parseInt(timer / 60, 10);
-                    seconds = parseInt(timer % 60, 10);
-
-                    minutes = minutes < 10 ? "0" + minutes : minutes;
-                    seconds = seconds < 10 ? "0" + seconds : seconds;
-                    $('#timer').text(minutes + ":" + seconds);
-
-                    if (--timer < 0) {
-                        clearInterval();
-                        $('form').submit(); 
-                    }
-                }, 1000);
-            }
-
-            var startTime = new Date("{{ $quiz->start_time }}").getTime();
-            var endTime = new Date("{{ $endTime }}").getTime();
-            var currentTime = new Date("{{ $currentTime }}").getTime();
-            var remainingTime = Math.floor((endTime - currentTime) / 1000); 
-
-            if (remainingTime > 0) {
-                startTimer(remainingTime);
-            } else {
-                $('#timer').text("Time's up!");
-                localStorage.clear();
-                $('form').submit(); 
             }
         });
-    </script>
+
+        $('.option').change(function() {
+            var questionId = $(this).closest('.question').attr('id').split('-')[1];
+            localStorage.setItem('question_' + questionId, $(this).val());
+            $(this).closest('.question-link').removeClass('unanswered').addClass('answered');
+
+            // Disable other options
+            disableOtherOptions(questionId, $(this));
+            updateQuestionLinkStates();
+        });
+
+        $('#submitQuizBtn').click(function() {
+            $('#submitModal').show();
+        });
+
+        // Confirm submission
+        $('#confirmSubmit').click(function() {
+            localStorage.clear(); // Clear saved answers before submitting
+            $('#quizForm').submit();
+        });
+
+        // Close modal
+        $('.close, #cancelSubmit').click(function() {
+            $('#submitModal').hide();
+        });
+
+        $(window).click(function(event) {
+            if ($(event.target).is('#submitModal')) {
+                $('#submitModal').hide();
+            }
+        });
+
+        function updateQuestionLinkStates() {
+            $('.question').each(function() {
+                var questionId = $(this).attr('id').split('-')[1];
+                var isAnswered = $(this).find('.option:checked').length > 0;
+                var link = $('.question-link[data-question-id="' + questionId + '"]');
+
+                if (isAnswered) {
+                    link.removeClass('unanswered').addClass('answered');
+                } else {
+                    link.removeClass('answered').addClass('unanswered');
+                }
+            });
+        }
+
+        function disableOtherOptions(questionId, selectedOption) {
+            // Disable all other options in the same question
+            $('#question-' + questionId + ' .option').not(selectedOption).prop('disabled', true);
+        }
+
+        function startTimer(duration) {
+            var timer = duration, minutes, seconds;
+            setInterval(function () {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+                $('#timer').text(minutes + ":" + seconds);
+
+                if (--timer < 0) {
+                    clearInterval();
+                    $('form').submit(); 
+                }
+            }, 1000);
+        }
+
+        var startTime = new Date("{{ $quiz->start_time }}").getTime();
+        var endTime = new Date("{{ $endTime }}").getTime();
+        var currentTime = new Date("{{ $currentTime }}").getTime();
+        var remainingTime = Math.floor((endTime - currentTime) / 1000); 
+
+        if (remainingTime > 0) {
+            startTimer(remainingTime);
+        } else {
+            $('#timer').text("Time's up!");
+            localStorage.clear();
+            $('form').submit(); 
+        }
+    });
+</script>
+
 </body>
 </html>

@@ -33,6 +33,9 @@ class AdminQuiz extends Controller
     }
     public function GetResults(Request $request)
     {
+        $admin = Session::get('admin');
+        if(!$admin)
+            return redirect('AdminLoginPage');
         // Validate the quiz name
         $request->validate([
             'quiz_name' => 'required|exists:quizzes,quiz_name',
@@ -48,7 +51,7 @@ class AdminQuiz extends Controller
 
         // Retrieve application_id and score from the participants table where score is not null
         $participants = DB::table($participantsTable)
-            ->select('application_id', 'score')
+            ->select('application_id', 'score', 'wrong', 'unanswered')
             ->whereNotNull('score') // Only include rows where score is not null
             ->get();
 
@@ -70,11 +73,11 @@ class AdminQuiz extends Controller
         $handle = fopen('php://output', 'w');
 
         // Output CSV header
-        fputcsv($handle, ['Application ID', 'Score']); // CSV Header
+        fputcsv($handle, ['Application ID', 'Score', 'Wrong Answers', 'Unanswered']); // CSV Header
 
         // Output participant data
         foreach ($participants as $participant) {
-            fputcsv($handle, [$participant->application_id, $participant->score]);
+            fputcsv($handle, [$participant->application_id, $participant->score, $participant->wrong, $participant->unanswered]);
         }
 
         // Flush output to the browser
@@ -88,6 +91,43 @@ class AdminQuiz extends Controller
             // No additional processing is needed here
         }, Response::HTTP_OK, $headers);
     }
+    public function EditQuizPage()
+    {
+        $admin = Session::get('admin');
+        if($admin)
+        {
+            $quiz = DB::table('quizzes')->get();
+            return view('Admin.editquiz', ['user' => $admin, 'quiz' => $quiz]);
+        }
+        return redirect()->route('AdminLoginPage');
+        
+    }
+    public function EditQuiz(Request $request)
+    {
+        $request->validate([
+            'quiz_name' => 'required|exists:quizzes,quiz_name',
+        ]);
+        $participantsTable = "{$request->quiz_name}_participants";
+        $participants = DB::table($participantsTable)->get();
+        return view('Admin.resetquiz', ['participants' => $participants, 'selectedQuiz' => $request->quiz_name]);
+    }
+    public function ResetQuiz(Request $request, $id)
+    {
+        $request->validate([
+            'quiz_name' => 'required|exists:quizzes,quiz_name',
+        ]);
+        
+        $participantsTable = "{$request->quiz_name}_participants";
+        $candidate = DB::table($participantsTable)->select('application_id')->where('id', $id)->first();
+        
+        DB::table($participantsTable)->where('id', $id)->update([
+            'attempted' => null,
+            'endtime' => null,
+        ]);
+        
+        return redirect()->route('EditQuizPage')->with(['success' => "Test has been reset for {$candidate->application_id}", 'quiz_name' => $request->quiz_name]);
+    }
+
     public function AdminLoginPage()
     {
         return view('Admin.AdminLogin');

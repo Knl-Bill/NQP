@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Quiz</title>
+    <title>Edit Quiz</title>
     <style>
         /* General reset and styles */
         body {
@@ -132,8 +132,8 @@
     <div class="sidebar">
         <h2>{{$user->name}}</h2>
         <ul>
-            <li><a href="/CreateQuiz" id="active_link">Create Quiz</a></li>
-            <li><a href="/EditQuizPage">Edit Quiz</a></li>
+            <li><a href="/CreateQuiz" >Create Quiz</a></li>
+            <li><a href="/EditQuizPage" id="active_link">Edit Quiz</a></li>
             <li><a href="/ResultsPage">Results</a></li>
             <li><a href="/AdminLogout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a></li>
         </ul>
@@ -144,7 +144,7 @@
 
     <!-- Main content area -->
     <div class="content">
-        <h1>Create New Quiz</h1>
+        <h1>Edit Quiz</h1>
         @if(session('success'))
             <div class="success">
                 {{ session('success') }}
@@ -161,47 +161,22 @@
             </div>
         @endif
 
-        <form action="/CreateNewQuiz" method="POST" enctype="multipart/form-data">
+        <form action="/EditQuiz" method="POST" enctype="multipart/form-data">
             @csrf
             <!-- Quiz Name -->
             <div class="form-group">
-                <label for="quiz_name">Quiz Name</label>
-                <input type="text" id="quiz_name" name="quiz_name" placeholder="Enter Quiz Name" required>
-            </div>
-
-            <!-- Quiz Length -->
-            <div class="form-group">
-                <label for="quiz_length">Quiz Length (in minutes)</label>
-                <input type="number" id="quiz_length" name="quiz_length" placeholder="Enter Quiz Length" required>
-            </div>
-
-            <!-- Start Time -->
-            <div class="form-group">
-                <label for="start_time">Start Time</label>
-                <input type="datetime-local" id="start_time" name="start_time" required>
-            </div>
-
-            <!-- End Time -->
-            <div class="form-group">
-                <label for="end_time">End Time</label>
-                <input type="datetime-local" id="end_time" name="end_time" required>
-            </div>
-
-            <!-- Questions File Upload -->
-            <div class="form-group">
-                <label for="questions_file">Questions File (.csv or .xlsx)</label>
-                <input type="file" id="questions_file" name="questions_file" accept=".csv,.xlsx" required>
-            </div>
-
-            <!-- Participants File Upload -->
-            <div class="form-group">
-                <label for="participants_file">Participants File (.csv or .xlsx)</label>
-                <input type="file" id="participants_file" name="participants_file" accept=".csv,.xlsx" required>
+                <label for="category">Choose Quiz:</label>
+                <select class="inputs" id="category" name="quiz_name" required>
+                    <option value="" selected disabled hidden>Select Quiz</option>
+                    @foreach($quiz as $q)
+                    <option value= "{{$q->quiz_name}}" >{{$q->quiz_name}}</option>
+                    @endforeach
+                </select>
             </div>
 
             <!-- Submit Button -->
             <div class="form-group">
-                <button type="submit">Create Quiz</button>
+                <button type="submit">Get Quiz</button>
             </div>
         </form>
     </div>

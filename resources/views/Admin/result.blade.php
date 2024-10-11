@@ -132,9 +132,9 @@
     <div class="sidebar">
         <h2>{{$user->name}}</h2>
         <ul>
-            <li><a href="/CreateQuiz" id="active_link">Create Quiz</a></li>
-            <li><a href="#">Edit Quiz</a></li>
-            <li><a href="/ResultsPage">Results</a></li>
+            <li><a href="/CreateQuiz">Create Quiz</a></li>
+            <li><a href="/EditQuizPage">Edit Quiz</a></li>
+            <li><a href="/ResultsPage" id="active_link">Results</a></li>
             <li><a href="/AdminLogout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a></li>
         </ul>
         <form id="logout-form" action="/AdminLogout" method="POST" style="display: none;">
@@ -144,7 +144,7 @@
 
     <!-- Main content area -->
     <div class="content">
-        <h1>Create New Quiz</h1>
+        <h1>Results</h1>
         @if(session('success'))
             <div class="success">
                 {{ session('success') }}

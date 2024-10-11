@@ -56,6 +56,8 @@ class QuizController extends Controller
             $table->date('dob')->nullable(); // Ensure to allow null for dob
             $table->boolean('attempted')->nullable()->default(false);
             $table->integer('score')->nullable();
+            $table->integer('wrong')->nullable();
+            $table->integer('unanswered')->nullable();
             $table->dateTime('endtime')->nullable();
             $table->timestamps();
         });

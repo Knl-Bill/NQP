@@ -70,7 +70,7 @@ class Validate extends Controller
         
 
         // Fetch questions from the respective questions table
-        $questions = DB::table($questionsTable)->inRandomOrder()->get();
+        
         
         // Redirect to the quiz page with the questions
         Session::put('candidate', $participant);
@@ -82,6 +82,9 @@ class Validate extends Controller
                 DB::table($participantsTable)
                     ->where('application_id', $applicationId)
                     ->update(['endtime' => $endTime]);
+                
+                $questions = DB::table($questionsTable)->inRandomOrder()->get();
+                Session::put('questions', $questions);
             } else {
                 // If endtime is already set, fetch it from the participant record
                 $endTime = $participant->endtime;
@@ -92,7 +95,7 @@ class Validate extends Controller
             $endTime=NULL;
         }
         return view('Candidate.Quiz', [
-            'questions' => $questions,
+            // 'questions' => $questions,
             'endTime' => $endTime,
             'applicationId' => $applicationId,
             'QuestionTable' => $questionsTable,
@@ -107,48 +110,62 @@ class Validate extends Controller
         // Retrieve participant's answers from the form
         $answers = $request->except('_token'); // Exclude the CSRF token from the request data
         $totalScore = 0; // Initialize score
-    
+        $totalQuestions = DB::table($request->QuestionTable)->count(); // Initialize the total number of questions
+        $wrongAnswers = 0; // Initialize wrong answers count
+        $unansweredQuestions = 0; // Initialize unanswered questions count
+
         // Loop through each answer to check against correct answers
         foreach ($answers as $questionKey => $selectedAnswer) {
             // Define an array of keys to ignore (those that contain specific identifiers or patterns)
             $ignoreKeys = ['applicationId', 'QuestionTable', 'ParticipantsTable']; // Replace with actual hidden input names
-        
+
             // Check if the current key is in the ignore list
             if (in_array($questionKey, $ignoreKeys)) {
                 continue; // Skip this iteration if it's a key to ignore
             }
-        
+
             // Ensure the questionKey contains an underscore and split it
             if (strpos($questionKey, '_') !== false) {
                 // Extract the question ID from the input name, assuming the format is 'question_{id}'
                 $parts = explode('_', $questionKey);
-        
+
                 // Check if the array has two parts and proceed
                 if (count($parts) === 2) {
                     $questionId = $parts[1];
-        
+
                     // Find the correct answer for the question
                     $question = DB::table($request->QuestionTable)->where('id', $questionId)->first();
-    
-                    // Compare the user's answer with the correct answer (assuming 'ans' is the correct option)
-                    if ($question && $selectedAnswer == $question->ans) {
-                        $totalScore++; // Increment score for correct answers
+
+                    // Check if the question exists
+                    if ($question) {
+                        // Check if the user left the question unanswered
+                        if (empty($selectedAnswer)) {
+                            $unansweredQuestions++; // Increment unanswered questions count
+                        } else if ($selectedAnswer == $question->ans) {
+                            // Correct answer
+                            $totalScore++; // Increment score for correct answers
+                        } else {
+                            // Wrong answer
+                            $wrongAnswers++; // Increment wrong answers count
+                        }
                     }
                 }
             }
         }
-    
-        // Update the participant's score
+
+        // Update the participant's score and other stats
         DB::table($request->ParticipantsTable)->where('application_id', $request->applicationId)->update([
             'score' => $totalScore,
             'attempted' => 1,
+            'wrong' => $wrongAnswers, // Add wrong answers field in the database if needed
+            'unanswered' => $totalQuestions - $totalScore - $wrongAnswers, // Add unanswered questions field in the database if needed
         ]);
-    
+
         // Destroy the session
         Session::flush();
-    
+
         // Redirect to the thank you page
-        return redirect()->route('thanksPage'); // Pass the score to the next page if needed
+        return redirect()->route('thanksPage');
     }
     
 
