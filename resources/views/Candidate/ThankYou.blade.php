@@ -50,8 +50,8 @@
 <body>
 
 <div class="container">
-    <h1>Thank You for Taking the Quiz!</h1>
-    <p>Your submission has been recorded. We hope you had a great experience.</p>
+    <h1>Your submission has been recorded</h1>
+    <p>Please do not refresh or go back!</p>
 
     <a href="{{ url('/') }}">Return to Home</a>
 </div>

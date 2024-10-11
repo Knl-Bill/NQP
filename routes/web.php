@@ -21,6 +21,9 @@ Route::post('/AdminLogin', [AdminQuiz::class, 'AdminLogin'])->name('AdminLogin')
 Route::post('/AdminLogout', [AdminQuiz::class, 'AdminLogout'])->name('AdminLogout');
 Route::get('/ResultsPage', [AdminQuiz::class, 'ResultsPage'])->name('ResultsPage');
 Route::post('/GetResult', [AdminQuiz::class, 'GetResults'])->name('GetResult');
+Route::get('/EditQuizPage', [AdminQuiz::class, 'EditQuizPage'])->name('EditQuizPage');
+Route::post('/EditQuiz', [AdminQuiz::class, 'EditQuiz'])->name('EditQuiz');
+Route::post('/ResetQuiz/{id}', [AdminQuiz::class, 'ResetQuiz'])->name('ResetQuiz');
 
 // Quiz Controller
 Route::post('/CreateNewQuiz', [QuizController::class,'CreateNewQuiz'])->name('CreateNewQuiz');

@@ -6,11 +6,10 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "ladumor/laravel-pwa": "^0.0.4",
         "laravel/framework": "^11.9",
         "laravel/tinker": "^2.9",
         "maatwebsite/excel": "^3.1",
-        "silviolleite/laravelpwa": "2.0"
+        "silviolleite/laravelpwa": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -63,6 +62,6 @@
             "php-http/discovery": true
         }
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }
