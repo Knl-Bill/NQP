@@ -39,23 +39,24 @@ body {
 
 /* Left panel for question numbers */
 .left-panel {
-    width: 30%; /* Fixed width for 5 columns */
-    margin-right: 20px;
+    width: 25%; /* Fixed width for 5 columns */
+    margin: 0px 20px 0px 5px;
     background-color: #e7f1ff; /* Light blue background */
     padding: 10px;
     border-radius: 5px;
-    height: calc(100vh - 70px); /* Full height minus nav and footer */
+    height: calc(98vh - 70px); /* Full height minus nav and footer */
     overflow-y: auto; /* Scrollable panel */
     display: grid;
     grid-template-columns: repeat(5, 1fr); /* Default for large screens */
     gap: 10px;
+    box-shadow: inset 0.5px 0.5px 3px 0.5px gray;
 }
 
 /* Tablet layout (screen width between 768px and 1024px) */
 @media (max-width: 1024px) {
     .left-panel {
         grid-template-columns: repeat(3, 1fr); /* 3 columns on tablet */
-        width: 30%; /* Adjust width for 3 columns */
+        width: 25%; /* Adjust width for 3 columns */
     }
 }
 
@@ -63,8 +64,7 @@ body {
 @media (max-width: 768px) {
     .left-panel {
         grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
-        width: 180px; /* Adjust width for 2 columns */
-        margin-right: 30%; /* Adjust margins for smaller screens */
+        width: 25%; /* Adjust width for 2 columns */
         padding: 5px; /* Less padding for mobile */
     }
 }
@@ -88,6 +88,7 @@ body {
     margin-bottom: 5px;
     text-decoration: none;
     color: #007bff; /* Blue text */
+    text-align: center;
 }
 
 .question-link.selected {
@@ -109,15 +110,26 @@ body {
     background-color: #f1f1f1 !important; /* Grey background on hover */
 }
 
+.options{
+    padding: 15px;
+}
+
+.options:hover {
+    background-color: #cee3ff;
+    border-radius: 20px;
+  }
 /* Right panel for questions */
 .right-panel {
+    width: 70%;
     position: relative;
     /* Ensure the background color and padding are still applied to the content */
     background-color: #e7f1ff;
     padding: 10px;
     border-radius: 5px;
-    height: calc(100vh - 70px); /* Full height minus nav and footer */
+    height: calc(98vh - 70px); /* Full height minus nav and footer */
     overflow-y: auto;
+    box-shadow: inset 0.5px 0.5px 3px 0.5px gray;
+    overflow-y: auto; /* Scrollable panel */
 }
 
 .right-panel::before {
@@ -226,7 +238,7 @@ button:hover {
 .modal {
     display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
+    z-index: 2; /* Sit on top */
     left: 0;
     top: 0;
     width: 100%; /* Full width */

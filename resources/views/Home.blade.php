@@ -85,11 +85,14 @@
             margin-top: 10px;
             text-decoration: none;
         }
+        #logo{
+            width:120px;
+        }
     </style>
 </head>
 <body>
     <div class="form-container">
-        <h2>Quiz App</h2>
+        <h2> <img src="/assets/images/logo.webp" alt="" id="logo"> </h2>
         @if($errors->any())
             <div>
                 @foreach($errors->all() as $error)
@@ -101,9 +104,9 @@
             @csrf
             <!-- Dropdown -->
             <div class="form-group">
-                <label for="category">Choose Quiz:</label>
+                <label for="category">Choose Test:</label>
                 <select class="inputs" id="category" name="category" required>
-                    <option value="" selected disabled hidden>Select Quiz</option>
+                    <option value="" selected disabled hidden>Select Test</option>
                     @foreach($quiz as $q)
                     <option value= "{{$q->quiz_name}}" >{{$q->quiz_name}}</option>
                     @endforeach

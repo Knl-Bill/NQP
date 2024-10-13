@@ -20,7 +20,7 @@
 </head>
 <body>
     @php
-        $currentTime = \Carbon\Carbon::now()->timezone('Asia/Kolkata'); // Get current time
+        $currentTime = \Carbon\Carbon::now('Asia/Kolkata'); // Get current time
         $startTime = \Carbon\Carbon::parse($quiz->start_time)->timezone('Asia/Kolkata');
         $endTestTime = \Carbon\Carbon::parse($quiz->end_time)->timezone('Asia/Kolkata');
         if(Session::has('questions')) {
@@ -35,19 +35,24 @@
         </div>
         <script>
             var startTime = new Date("{{ $startTime }}").getTime();
+            var serverTime = new Date("{{ $currentTime }}").getTime();
+            var currentTime = serverTime; 
             var countdownInterval = setInterval(function() {
-                var currentTime = new Date().getTime();
+                currentTime += 1000; 
+
                 var timeDifference = startTime - currentTime;
                 var days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
                 var hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 var minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
                 var seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+                
                 document.getElementById("countdown").innerHTML = days + "d " + hours + "h " 
                     + minutes + "m " + seconds + "s ";
+                
                 if (timeDifference < 0) {
                     clearInterval(countdownInterval);
-                    window.location.reload();
                     document.getElementById("countdown").innerHTML = "The test has started!";
+                    window.location.reload(); // Reload only when the countdown ends
                 }
             }, 1000);
         </script>
@@ -87,19 +92,19 @@
                     @foreach ($questions as $question)
                         <div class="question" id="question-{{ $question->id }}" style="display: none;">
                             <h4>{{ $question->question }}</h4>
-                            <div>
+                            <div class="options">
                                 <input type="radio" name="question_{{ $question->id }}" value="1" class="option" {{ old("question_{$question->id}") == 1 ? 'checked' : '' }}>
                                 {{ $question->op1 }}
                             </div>
-                            <div>
+                            <div class="options">
                                 <input type="radio" name="question_{{ $question->id }}" value="2" class="option" {{ old("question_{$question->id}") == 2 ? 'checked' : '' }}>
                                 {{ $question->op2 }}
                             </div>
-                            <div>
+                            <div class="options">
                                 <input type="radio" name="question_{{ $question->id }}" value="3" class="option" {{ old("question_{$question->id}") == 3 ? 'checked' : '' }}>
                                 {{ $question->op3 }}
                             </div>
-                            <div>
+                            <div class="options">
                                 <input type="radio" name="question_{{ $question->id }}" value="4" class="option" {{ old("question_{$question->id}") == 4 ? 'checked' : '' }}>
                                 {{ $question->op4 }}
                             </div>
@@ -211,6 +216,7 @@
 
                 if (--timer < 0) {
                     clearInterval();
+                    localStorage.clear();
                     $('form').submit(); 
                 }
             }, 1000);

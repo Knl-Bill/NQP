@@ -100,6 +100,9 @@
         .forgot-password a:hover {
             text-decoration: underline;
         }
+        #logo{
+            width: 120px;
+        }
     </style>
     <!-- <script>
         window.addEventListener('pageshow', function(event) {
@@ -115,7 +118,7 @@
 </head>
 <body>
     <div class="login-container">
-        <h2>Admin Login</h2>
+        <h2> <img src="/assets/images/logo.webp" alt="" id="logo"> </h2>
         <form action="/AdminLogin" method="POST">
             @csrf
 
