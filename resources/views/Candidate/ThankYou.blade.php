@@ -56,5 +56,9 @@
     <a href="{{ url('/') }}">Return to Home</a>
 </div>
 
+<script>
+    localStorage.clear();
+</script>
+
 </body>
 </html>

@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/assets/js/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="/assets/css/QuizPage.css">
-    <script>
+    <!-- <script>
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {
                 window.location.reload();
@@ -16,7 +16,7 @@
         if (!user) {
             window.location.href = '/';
         }
-    </script>
+    </script> -->
 </head>
 <body>
     @php
@@ -59,6 +59,10 @@
     @elseif(($endTime == NULL) && ($currentTime > $endTestTime))
         <div class="afterTest">
             The test has expired
+        </div>
+    @elseif(($participant) && ($participant->attempted == 1))
+        <div class="afterTest">
+            Responses are getting recorded, please wait... 
         </div>
     @else
         <div class="nav-bar">
@@ -170,7 +174,7 @@
 
         // Confirm submission
         $('#confirmSubmit').click(function() {
-            localStorage.clear(); // Clear saved answers before submitting
+            // localStorage.clear(); // Clear saved answers before submitting
             $('#quizForm').submit();
         });
 
@@ -203,7 +207,7 @@
             // Disable all other options in the same question
             $('#question-' + questionId + ' .option').not(selectedOption).prop('disabled', true);
         }
-
+        let formSubmitted=false;
         function startTimer(duration) {
             var timer = duration, minutes, seconds;
             setInterval(function () {
@@ -214,9 +218,10 @@
                 seconds = seconds < 10 ? "0" + seconds : seconds;
                 $('#timer').text(minutes + ":" + seconds);
 
-                if (--timer < 0) {
+                if (--timer < 0 && !formSubmitted) {
                     clearInterval();
-                    localStorage.clear();
+                    // localStorage.clear();
+                    formSubmitted=true;
                     $('form').submit(); 
                 }
             }, 1000);
@@ -229,11 +234,12 @@
 
         if (remainingTime > 0) {
             startTimer(remainingTime);
-        } else {
-            $('#timer').text("Time's up!");
-            localStorage.clear();
-            $('form').submit(); 
         }
+        // } else {
+        //     $('#timer').text("Time's up!");
+        //     localStorage.clear();
+        //     $('form').submit(); 
+        // }
     });
 </script>
 
