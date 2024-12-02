@@ -134,6 +134,7 @@
         <ul>
             <li><a href="/CreateQuiz">Create Quiz</a></li>
             <li><a href="/EditQuizPage">Edit Quiz</a></li>
+            <li><a href="/DeleteQuizPage">Delete Quiz</a></li>
             <li><a href="/ResultsPage" id="active_link">Results</a></li>
             <li><a href="/AdminLogout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a></li>
         </ul>

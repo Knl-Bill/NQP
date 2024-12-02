@@ -21,6 +21,51 @@ class AdminQuiz extends Controller
             return view('Admin.create', ['user' => $admin]);
         return redirect()->route('AdminLoginPage');
     }
+    public function DeleteQuizPage()
+    {
+        $admin = Session::get('admin');
+        if($admin)
+        {
+            $quiz = DB::table('quizzes')->get();
+            return view('Admin.delete', ['user' => $admin, 'quiz' => $quiz]);
+        }
+        return redirect()->route('AdminLoginPage');
+    }
+    public function deleteQuiz(Request $request)
+    {
+        // Validate the request to ensure the quiz name is provided
+        $request->validate([
+            'quiz_name' => 'required|string',
+        ]);
+
+        try {
+            // Define the table names dynamically based on quiz_name
+            $participantsTable = "{$request->quiz_name}_participants";
+            $questionsTable = "{$request->quiz_name}_questions";
+
+            // Delete the participants table if it exists
+            if (DB::getSchemaBuilder()->hasTable($participantsTable)) {
+                DB::statement("DROP TABLE IF EXISTS {$participantsTable}");
+            }
+
+            // Delete the questions table if it exists
+            if (DB::getSchemaBuilder()->hasTable($questionsTable)) {
+                DB::statement("DROP TABLE IF EXISTS {$questionsTable}");
+            }
+
+            // Delete the entry in the quizzes table with the matching quiz_name
+            DB::table('quizzes')->where('quiz_name', $request->quiz_name)->delete();
+
+            // Redirect back with a success message
+            return redirect()->back()->with('success', 'Quiz and related data deleted successfully!');
+        } catch (\Exception $e) {
+            // Log the error
+            \Log::error('Failed to delete quiz: ' . $e->getMessage());
+
+            // Redirect back with an error message
+            return redirect()->back()->withErrors(['message' => 'Failed to delete quiz. Please try again later.']);
+        }
+    }
     public function ResultsPage()
     {
         $admin = Session::get('admin');
@@ -127,6 +172,74 @@ class AdminQuiz extends Controller
         
         return redirect()->route('EditQuizPage')->with(['success' => "Test has been reset for {$candidate->application_id}", 'quiz_name' => $request->quiz_name]);
     }
+    public function ResetQuizBulk(Request $request, $applicationIds)
+    {
+        $request->validate([
+            'quiz_name' => 'required|exists:quizzes,quiz_name',
+        ]);
+        $applicationIdsArray = explode(',', $applicationIds);
+        $participantsTable = "{$request->quiz_name}_participants";
+        $resetApplicationIds = [];
+        foreach ($applicationIdsArray as $applicationId) {
+            $participant = DB::table($participantsTable)->where('application_id', $applicationId)->first();
+
+            if ($participant) {
+                DB::table($participantsTable)->where('application_id', $applicationId)->update([
+                    'attempted' => null,
+                    'endtime' => null,
+                ]);
+                $resetApplicationIds[] = $applicationId;
+            }
+        }
+        if (count($resetApplicationIds) > 0) {
+            return redirect()->route('EditQuizPage')->with([
+                'success' => "Tests have been reset for the selected participants: " . implode(', ', $resetApplicationIds),
+                'quiz_name' => $request->quiz_name,
+            ]);
+        }
+        return redirect()->route('EditQuizPage')->with([
+            'error' => 'No valid participants were found for the reset operation.',
+            'quiz_name' => $request->quiz_name,
+        ]);
+    }
+
+    public function resetSelectedTests(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'participant_ids' => 'required|array|min:1',
+            'participant_ids.*' => 'exists:participants,id', // Validate that each ID exists in the participants table
+            'quiz_name' => 'required|exists:quizzes,quiz_name', // Ensure the quiz name exists
+        ]);
+
+        $participantIds = $request->input('participant_ids');
+        $quizName = $request->input('quiz_name');
+
+        $participantsTable = "{$quizName}_participants";
+
+        // Fetch application IDs for the success message
+        $candidates = DB::table($participantsTable)
+                        ->whereIn('id', $participantIds)
+                        ->pluck('application_id');
+
+        // Perform the bulk update
+        DB::table($participantsTable)
+            ->whereIn('id', $participantIds)
+            ->update([
+                'attempted' => null,
+                'endtime' => null,
+            ]);
+
+        // Prepare success message
+        $candidateList = implode(', ', $candidates->toArray()); // Convert array to comma-separated string
+
+        // Redirect back with success message
+        return redirect()->route('EditQuizPage')
+                        ->with('success', "Test has been reset for participants: {$candidateList}")
+                        ->with('quiz_name', $quizName);
+    }
+
+
 
     public function AdminLoginPage()
     {

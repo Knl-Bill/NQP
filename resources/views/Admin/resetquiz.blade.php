@@ -114,11 +114,19 @@
     </style>
 </head>
 <body>
+<body>
     <!-- Render Participants List if Quiz is Selected -->
     <h2>Participants List</h2>
+
+    <!-- Bulk Reset Section -->
+    <div>
+        <button onclick="openBulkModal()">Reset Selected Tests</button>
+    </div>
+
     <table>
         <thead>
             <tr>
+                <th><input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll()"> Select All</th> <!-- Select All Checkbox -->
                 <th>Participant</th>
                 <th>Reset Test</th>
             </tr>
@@ -126,17 +134,18 @@
         <tbody>
             @foreach($participants as $participant)
                 <tr>
+                    <td><input type="checkbox" class="participantCheckbox" data-id="{{ $participant->id }}" data-application-id="{{ $participant->application_id }}"></td>
                     <td>{{ $participant->application_id }}</td>
                     <td>
                         <!-- Reset Test Button -->
-                        <button onclick="openModal('{{ $participant->id }}', '{{ $selectedQuiz }}')">Reset Test</button>
+                        <button onclick="openModal('{{ $participant->id }}', '{{ $selectedQuiz }}', '{{ $participant->application_id }}')">Reset Test</button>
                     </td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
-    <!-- Modal -->
+    <!-- Modal for Single Reset -->
     <div id="confirmationModal" class="modal">
         <div class="modal-content">
             <h3>Confirm Reset</h3>
@@ -151,12 +160,29 @@
         </div>
     </div>
 
+    <!-- Modal for Bulk Reset -->
+    <div id="bulkConfirmationModal" class="modal">
+        <div class="modal-content">
+            <h3>Confirm Bulk Reset</h3>
+            <p>Are you sure you want to reset the tests for the selected participants?</p>
+            <form id="bulkResetForm" action="" method="POST">
+                @csrf
+                <input type="hidden" name="quiz_name" id="bulkQuizName" required>
+                <input type="hidden" name="application_ids" id="applicationIds" required>
+                <button type="button" onclick="submitBulkReset()">Yes, Reset Selected Tests</button>
+                <button type="button" onclick="closeBulkModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
     <script>
-        function openModal(participantId, quizName) {
+        function openModal(participantId, quizName, applicationId) {
             // Set participant ID and display it
             document.getElementById('participantId').value = participantId;
-            document.getElementById('participantIdDisplay').innerText = participantId; // Assuming participant ID is used as a display name
             document.getElementById('quizName').value = quizName;
+
+            // Display the application ID in the modal
+            document.getElementById('participantIdDisplay').innerText = applicationId;
 
             // Show the modal
             document.getElementById('confirmationModal').style.display = 'block';
@@ -173,11 +199,55 @@
             document.getElementById('resetForm').submit();
         }
 
+        function toggleSelectAll() {
+            let selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            let checkboxes = document.querySelectorAll('.participantCheckbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+        }
+
+        function openBulkModal() {
+            let checkboxes = document.querySelectorAll('.participantCheckbox');
+            let selectedApplicationIds = [];
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    selectedApplicationIds.push(checkbox.getAttribute('data-application-id'));
+                }
+            });
+
+            if (selectedApplicationIds.length > 0) {
+                // Set the selected application IDs to the hidden input
+                document.getElementById('applicationIds').value = selectedApplicationIds.join(',');
+                document.getElementById('bulkQuizName').value = '{{ $selectedQuiz }}';  // Use the selected quiz
+                document.getElementById('bulkConfirmationModal').style.display = 'block';
+            } else {
+                alert('Please select at least one participant.');
+            }
+        }
+
+        function closeBulkModal() {
+            // Hide the bulk reset modal
+            document.getElementById('bulkConfirmationModal').style.display = 'none';
+        }
+
+        function submitBulkReset() {
+            let applicationIds = document.getElementById('applicationIds').value;
+            // Submit bulk reset form
+            document.getElementById('bulkResetForm').action = '/ResetQuizBulk/' + applicationIds;
+            document.getElementById('bulkResetForm').submit();
+        }
+
         // Close the modal if user clicks outside of it
         window.onclick = function(event) {
             var modal = document.getElementById('confirmationModal');
             if (event.target == modal) {
                 closeModal();
+            }
+
+            var bulkModal = document.getElementById('bulkConfirmationModal');
+            if (event.target == bulkModal) {
+                closeBulkModal();
             }
         }
     </script>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Quiz</title>
+    <title>Delete Quiz</title>
     <style>
         /* General reset and styles */
         body {
@@ -17,7 +17,7 @@
             width: 250px;
             background-color: #2c3e50;
             color: white;
-            height: 105vh;
+            height: 100vh;
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
         }
@@ -114,6 +114,44 @@
         .success {
             color:green;
         }
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent background */
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 40%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+        }
+
+        .modal button[type="button"] {
+            background-color: #f44336;
+        }
+
+        .modal button:hover {
+            opacity: 0.9;
+        }
     </style>
     <script>
         window.addEventListener('pageshow', function(event) {
@@ -132,9 +170,9 @@
     <div class="sidebar">
         <h2>{{$user->name}}</h2>
         <ul>
-            <li><a href="/CreateQuiz" id="active_link">Create Quiz</a></li>
+            <li><a href="/CreateQuiz">Create Quiz</a></li>
             <li><a href="/EditQuizPage">Edit Quiz</a></li>
-            <li><a href="/DeleteQuizPage">Delete Quiz</a></li>
+            <li><a href="/DeleteQuizPage" id="active_link">Delete Quiz</a></li>
             <li><a href="/ResultsPage">Results</a></li>
             <li><a href="/AdminLogout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Logout</a></li>
         </ul>
@@ -143,9 +181,23 @@
         </form>
     </div>
 
+    <!-- Modal -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <h3>Confirm Delete</h3>
+            <p>Are you sure you want to delete the quiz: <span id="quizNameDisplay"></span>?</p>
+            <form id="deleteForm" action="/DeleteQuiz" method="POST">
+                @csrf
+                <input type="hidden" name="quiz_name" id="quizNameInput">
+                <button type="submit">Yes, Delete Quiz</button>
+                <button type="button" onclick="closeModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Main content area -->
     <div class="content">
-        <h1>Create New Quiz</h1>
+        <h1>Delete Quiz</h1>
         @if(session('success'))
             <div class="success">
                 {{ session('success') }}
@@ -162,62 +214,49 @@
             </div>
         @endif
 
-        <form action="/CreateNewQuiz" method="POST" enctype="multipart/form-data">
+        <!-- Quiz Deletion Form -->
+        <form id="deleteQuizForm" method="POST">
             @csrf
             <!-- Quiz Name -->
             <div class="form-group">
-                <label for="quiz_name">Quiz Name</label>
-                <input type="text" id="quiz_name" name="quiz_name" placeholder="Enter Quiz Name" required>
-            </div>
-            <?php
-                $QuizType = Session::get('QuizType');
-            ?>
-            <!-- Quiz Type -->
-            <div class="form-group">
-                <label for="quiz_type">Quiz Type</label>
-                <select id="quiz_type" name="quiz_type" required>
-                    <option value="" disabled selected>Select Quiz Type</option>
-                    @foreach($QuizType as $type)
-                        <option value="{{ $type->id }}">{{ $type->type }}</option>
+                <label for="category">Choose Quiz to Delete:</label>
+                <select class="inputs" id="category" name="quiz_name" required>
+                    <option value="" selected disabled hidden>Select Quiz</option>
+                    @foreach($quiz as $q)
+                        <option value="{{$q->quiz_name}}">{{$q->quiz_name}}</option>
                     @endforeach
                 </select>
             </div>
 
-            <!-- Quiz Length -->
+            <!-- Delete Button -->
             <div class="form-group">
-                <label for="quiz_length">Quiz Length (in minutes)</label>
-                <input type="number" id="quiz_length" name="quiz_length" placeholder="Enter Quiz Length" required>
-            </div>
-
-            <!-- Start Time -->
-            <div class="form-group">
-                <label for="start_time">Start Time</label>
-                <input type="datetime-local" id="start_time" name="start_time" required>
-            </div>
-
-            <!-- End Time -->
-            <div class="form-group">
-                <label for="end_time">End Time</label>
-                <input type="datetime-local" id="end_time" name="end_time" required>
-            </div>
-
-            <!-- Questions File Upload -->
-            <div class="form-group">
-                <label for="questions_file">Questions File (.csv or .xlsx)</label>
-                <input type="file" id="questions_file" name="questions_file" accept=".csv,.xlsx" required>
-            </div>
-
-            <!-- Participants File Upload -->
-            <div class="form-group">
-                <label for="participants_file">Participants File (.csv or .xlsx)</label>
-                <input type="file" id="participants_file" name="participants_file" accept=".csv,.xlsx" required>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="form-group">
-                <button type="submit">Create Quiz</button>
+                <button type="button" id="deleteQuizButton">Delete Quiz</button>
             </div>
         </form>
     </div>
+
+    <script>
+        // Function to open the modal
+        function openModal(quizName) {
+            document.getElementById('quizNameDisplay').innerText = quizName;
+            document.getElementById('quizNameInput').value = quizName;
+            document.getElementById('confirmationModal').style.display = 'block';
+        }
+
+        // Function to close the modal
+        function closeModal() {
+            document.getElementById('confirmationModal').style.display = 'none';
+        }
+
+        // Add event listener to the delete button
+        document.getElementById('deleteQuizButton').addEventListener('click', function() {
+            const selectedQuizName = document.getElementById('category').value;
+            if (selectedQuizName) {
+                openModal(selectedQuizName);
+            } else {
+                alert('Please select a quiz to delete.');
+            }
+        });
+    </script>
 </body>
 </html>
