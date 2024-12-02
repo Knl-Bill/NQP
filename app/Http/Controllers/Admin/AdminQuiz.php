@@ -148,7 +148,7 @@ class AdminQuiz extends Controller
         
         $email = $request->input('email');
         $password = $request->input('password');
-
+        $QuizType = DB::table('quiztype')->get();
         // Retrieve the user by their phone number
         $user = DB::table('users')->where('email', $email)->first();
         if($user) 
@@ -158,6 +158,7 @@ class AdminQuiz extends Controller
             {
                 // Password matches, redirect to dashboard
                 Session::put('admin',$user);
+                Session::put('QuizType', $QuizType);
                 return view('Admin.create', ['user'=> $user]);
             } 
             else 
@@ -175,6 +176,7 @@ class AdminQuiz extends Controller
     public function AdminLogout()
     {
         Session::forget('admin');
+        Session::forget('QuizType');
         Auth::logout();
 
         // Redirect to the login page

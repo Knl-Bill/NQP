@@ -94,7 +94,7 @@ class Validate extends Controller
         {
             $endTime=NULL;
         }
-        return view('Candidate.Quiz', [
+        return view('Candidate.Quiz' . $quiz->quiztype, [
             // 'questions' => $questions,
             'endTime' => $endTime,
             'applicationId' => $applicationId,

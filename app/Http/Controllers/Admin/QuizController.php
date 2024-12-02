@@ -19,6 +19,7 @@ class QuizController extends Controller
         // Validate the incoming request data
         $request->validate([
             'quiz_name' => 'required|string|max:255',
+            'quiz_type' => 'required|integer',
             'quiz_length' => 'required|integer|min:1',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
@@ -31,6 +32,7 @@ class QuizController extends Controller
             'test_length' => $request->quiz_length,
             'start_time' => Carbon::parse($request->start_time, $timezone)->setTimezone('UTC'),
             'end_time' => Carbon::parse($request->end_time, $timezone)->setTimezone('UTC'),
+            'quiztype' => $request->quiz_type,
         ]);
 
         // Create dynamic table names
@@ -38,17 +40,32 @@ class QuizController extends Controller
         $participantsTable = "{$request->quiz_name}_participants";
 
         // Create Questions table
-        Schema::create($questionsTable, function (Blueprint $table) {
-            $table->increments('id');
-            $table->text('question');
-            $table->text('op1');
-            $table->text('op2');
-            $table->text('op3');
-            $table->text('op4');
-            $table->text('ans');
-            $table->timestamps();
-        });
-
+        if($request->quiz_type == 3 || $request->quiz_type == 4)
+        {
+            Schema::create($questionsTable, function (Blueprint $table) use ($request) {
+                $table->increments('id');
+                $table->text('question');
+                $table->text('op1');
+                $table->text('op2');
+                $table->text('op3');
+                $table->text('op4');
+                $table->text('ans');
+                $table->integer('timer');
+                $table->timestamps();
+            });
+        }
+        else{
+            Schema::create($questionsTable, function (Blueprint $table) use ($request) {
+                $table->increments('id');
+                $table->text('question');
+                $table->text('op1');
+                $table->text('op2');
+                $table->text('op3');
+                $table->text('op4');
+                $table->text('ans');
+                $table->timestamps();
+            });
+        }
         // Create Participants table
         Schema::create($participantsTable, function (Blueprint $table) {
             $table->increments('id');
@@ -65,7 +82,7 @@ class QuizController extends Controller
         // Parse and insert questions
         try {
             // Parse and insert questions
-            Excel::import(new QuestionsImport($questionsTable), $request->file('questions_file'));
+            Excel::import(new QuestionsImport($questionsTable, $request->quiz_type), $request->file('questions_file'));
     
             // Parse and insert participants
             Excel::import(new ParticipantsImport($participantsTable), $request->file('participants_file'));

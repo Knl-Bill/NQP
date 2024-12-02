@@ -17,7 +17,7 @@
             width: 250px;
             background-color: #2c3e50;
             color: white;
-            height: 100vh;
+            height: 105vh;
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
         }
@@ -167,6 +167,19 @@
             <div class="form-group">
                 <label for="quiz_name">Quiz Name</label>
                 <input type="text" id="quiz_name" name="quiz_name" placeholder="Enter Quiz Name" required>
+            </div>
+            <?php
+                $QuizType = Session::get('QuizType');
+            ?>
+            <!-- Quiz Type -->
+            <div class="form-group">
+                <label for="quiz_type">Quiz Type</label>
+                <select id="quiz_type" name="quiz_type" required>
+                    <option value="" disabled selected>Select Quiz Type</option>
+                    @foreach($QuizType as $type)
+                        <option value="{{ $type->id }}">{{ $type->type }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <!-- Quiz Length -->

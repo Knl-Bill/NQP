@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('quizzes', function (Blueprint $table) {
+        //
+        Schema::create('quiztype', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->string('quiz_name')->unique();
-            $table->integer('test_length');
-            $table->dateTime('start_time');
-            $table->dateTime('end_time');
-            $table->integer('quiztype');
+            $table->string('type');
         });
     }
 
@@ -27,6 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('quizzes');
+        //
+        Schema::dropIfExists('quiztype');
     }
 };

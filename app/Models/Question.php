@@ -20,4 +20,10 @@ class Question extends Model
         'op4',
         'ans',
     ];
+
+    public function initialize($quiz_type)
+    {
+        if(in_array($quiz_type, [3,4]))
+            $this->fillable[] = 'timer';
+    }
 }
